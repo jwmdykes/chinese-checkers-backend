@@ -5,18 +5,22 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 console.log('This is running as development: ', isDevelopment);
 
 const app = express();
+let allowedCors = {};
 if (isDevelopment) {
   app.use(cors());
+  allowedCors = {
+    cors: {
+      origin: `http://${host}:${3000}`,
+      methods: ['GET', 'POST'],
+    },
+  };
 }
 
 const http = require('http');
 const server = http.createServer(app);
 const { Server } = require('socket.io');
 const io = new Server(server, {
-  cors: {
-    origin: `http://${host}:${3000}`,
-    methods: ['GET', 'POST'],
-  },
+  cors: allowedCors,
 });
 
 app.get('/', (req, res) => {
