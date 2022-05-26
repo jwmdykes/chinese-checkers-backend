@@ -6,6 +6,7 @@
   "author": "ulazy1 <ulazy1@github.com>",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.1"
+    "express": "^4.18.1",
+    "socket.io": "^4.5.1"
   }
 }
