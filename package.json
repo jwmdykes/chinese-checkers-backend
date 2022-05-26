@@ -1,0 +1,8 @@
+{
+  "name": "chinese-checkers-backend",
+  "version": "1.0.0",
+  "description": "backend for chinese checkers app",
+  "main": "index.js",
+  "author": "ulazy1 <ulazy1@github.com>",
+  "license": "MIT"
+}
