@@ -4,5 +4,8 @@
   "description": "backend for chinese checkers app",
   "main": "index.js",
   "author": "ulazy1 <ulazy1@github.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.1"
+  }
 }
