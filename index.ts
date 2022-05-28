@@ -149,7 +149,9 @@ io.on('connection', (socket) => {
 });
 
 server.listen(port, host, () => {
-  console.log(`listening at: http://${host}:${port}`);
+  console.log(
+    `listening at: http${key_file && cert_file ? 's' : ''}://${host}:${port}`
+  );
 });
 
 export {};
