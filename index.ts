@@ -8,6 +8,8 @@ const {
   allowedPort,
   allowedHost,
   isDevelopment,
+  key_file,
+  cert_file,
 } = require('./config');
 import { Socket } from 'socket.io';
 import * as gameSettings from './gameSettings';
@@ -34,8 +36,20 @@ const allowedCors = {
 const app = express();
 app.use(cors(allowedCors));
 
-const http = require('http');
-const server = http.createServer(app);
+let server: any;
+// use https if there are cert and key files in the environment variables
+if (key_file && cert_file) {
+  const fs = require('fs');
+  const https = require('https');
+  const privateKey = fs.readFileSync(key_file);
+  const certificate = fs.readFileSync(cert_file);
+  const credentials = { key: privateKey, cert: certificate };
+  server = https.createServer(credentials, app);
+} else {
+  const http = require('http');
+  server = http.createServer(app);
+}
+
 const { Server } = require('socket.io');
 
 let io: Socket;
