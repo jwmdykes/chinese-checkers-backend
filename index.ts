@@ -29,7 +29,7 @@ interface GameObject {
 const running_games: Map<string, GameObject> = new Map();
 
 const allowedCors = {
-  origin: `http${isDevelopment ? '' : 's'}://${allowedHost}/`,
+  origin: `http${isDevelopment ? '' : 's'}://${allowedHost}`,
   methods: ['GET', 'POST'],
 };
 
