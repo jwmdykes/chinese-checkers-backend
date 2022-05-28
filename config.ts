@@ -30,3 +30,5 @@ module.exports = {
   AWS_SECRET_ACCESS_KEY: AWS_SECRET_ACCESS_KEY,
   ddb: ddb,
 };
+
+export {};
