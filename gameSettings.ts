@@ -30,6 +30,15 @@ export const Player6: gameLogic.Player = {
   color: 'yellow',
 };
 
+export const AllPlayers = [
+  Player1,
+  Player2,
+  Player3,
+  Player4,
+  Player5,
+  Player6,
+];
+
 export interface Color {
   type: string;
   hue: number;

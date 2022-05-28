@@ -1,11 +1,18 @@
 export interface Player {
   id: number;
   color: string;
+  secret?: string;
 }
 
 export interface Square {
   color: number;
   selected: boolean;
+}
+
+export interface MoveObject {
+  player: Player;
+  source: { x: number; y: number };
+  dest: { x: number; y: number };
 }
 
 export const fillBoard0s = (
@@ -689,4 +696,25 @@ export const getWinner = (
     }
   }
   return null;
+};
+
+export const updateRows = (
+  rows: Array<Array<Number>>,
+  source: { x: number; y: number },
+  dest: { x: number; y: number },
+  player: Player
+) => {
+  let newRows = JSON.parse(JSON.stringify(rows));
+  newRows[source.y][source.x] = 0;
+  newRows[dest.y][dest.x] = player.id;
+  return newRows;
+};
+
+export const getFirstAvailableGame = (data: any) => {
+  for (let game of data) {
+    if (game.players.length < game.targetPlayers) {
+      return game.gameID;
+    }
+  }
+  return '';
 };
