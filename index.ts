@@ -2,8 +2,13 @@ const express = require('express');
 import * as Express from 'express';
 const cors = require('cors');
 const crypto = require('crypto');
-const { port, host } = require('./config');
-const isDevelopment = process.env.NODE_ENV === 'development';
+const {
+  port,
+  host,
+  allowedPort,
+  allowedHost,
+  isDevelopment,
+} = require('./config');
 import { Socket } from 'socket.io';
 import * as gameSettings from './gameSettings';
 import * as gameLogic from './gameLogic';
@@ -21,30 +26,22 @@ interface GameObject {
 // keep a list of the running games on this server
 const running_games: Map<string, GameObject> = new Map();
 
+const allowedCors = {
+  origin: `http${isDevelopment ? '' : 's'}://${allowedHost}:${allowedPort}`,
+  methods: ['GET', 'POST'],
+};
+
 const app = express();
-let allowedCors = {};
-if (isDevelopment) {
-  app.use(cors());
-  allowedCors = {
-    cors: {
-      origin: `http://${host}:${3000}`,
-      methods: ['GET', 'POST'],
-    },
-  };
-}
+app.use(cors(allowedCors));
 
 const http = require('http');
 const server = http.createServer(app);
 const { Server } = require('socket.io');
 
 let io: Socket;
-if (isDevelopment) {
-  io = new Server(server, {
-    cors: allowedCors,
-  });
-} else {
-  io = new Server(server);
-}
+io = new Server(server, {
+  cors: allowedCors,
+});
 
 app.get('/', (req: Express.Request, res: Express.Response) => {
   res.send('Hello World!');
