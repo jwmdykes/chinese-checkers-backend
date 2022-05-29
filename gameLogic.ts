@@ -9,6 +9,18 @@ export interface Square {
   selected: boolean;
 }
 
+export interface GameObject {
+  gameID: string;
+  gameType: string;
+  host: string;
+  players: Player[];
+  availableSeats: boolean[];
+  targetPlayers: Player[];
+  numTargetPlayers: number;
+  rows: Array<Array<Number>>;
+  turn: number;
+}
+
 export interface MoveObject {
   player: Player;
   source: { x: number; y: number };
@@ -712,7 +724,7 @@ export const updateRows = (
 
 export const getFirstAvailableGame = (data: any) => {
   for (let game of data) {
-    if (game.players.length < game.targetPlayers) {
+    if (game.players.length < game.numTargetPlayers) {
       return game.gameID;
     }
   }

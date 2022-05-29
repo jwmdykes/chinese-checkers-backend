@@ -16,22 +16,22 @@ import * as gameSettings from './gameSettings';
 import * as gameLogic from './gameLogic';
 console.log('This is running as development: ', isDevelopment);
 
-interface GameObject {
-  gameID: string;
-  gameType: string;
-  host: string;
-  players: gameLogic.Player[];
-  targetPlayers: number;
-  rows: Array<Array<Number>>;
-}
-
 // keep a list of the running games on this server
-const running_games: Map<string, GameObject> = new Map();
+const running_games: Map<string, gameLogic.GameObject> = new Map();
 
 const allowedCors = {
-  origin: `http${isDevelopment ? '' : 's'}://${allowedHost}`,
+  origin: `http${isDevelopment ? '' : 's'}://${allowedHost}${
+    isDevelopment ? ':' + allowedPort : ''
+  }`,
   methods: ['GET', 'POST'],
 };
+
+console.log(
+  'allowing cors from : ' +
+    `http${isDevelopment ? '' : 's'}://${allowedHost}${
+      isDevelopment ? ':' + allowedPort : ''
+    }`
+);
 
 const app = express();
 app.use(cors(allowedCors));
@@ -65,52 +65,95 @@ app.get(
   '/create/chinese-checkers',
   (req: Express.Request, res: Express.Response) => {
     const gameID = crypto.randomBytes(32).toString('hex');
-    const targetPlayers = 2;
+    const numTargetPlayers = 2;
+    const targetPlayers = gameSettings.AllPlayers.slice(0, numTargetPlayers);
     console.log('got random id for game: ', gameID);
-    const newGame: GameObject = {
+    const newGame: gameLogic.GameObject = {
       gameID: gameID,
       gameType: 'chinese-checkers',
       host: `${host}:${port}`,
       players: [],
+      numTargetPlayers: numTargetPlayers,
       targetPlayers: targetPlayers,
-      rows: gameSettings.StartingRows[targetPlayers],
+      rows: gameSettings.StartingRows[numTargetPlayers],
+      turn: gameSettings.AllPlayers[0].id,
+      availableSeats: Array(numTargetPlayers).fill(true),
     };
     running_games.set(newGame.gameID, newGame);
-    res.send(newGame);
+    res.send(Array.from(running_games.values()));
   }
 );
 
 app.get(
   '/list-games/chinese-checkers',
   (req: Express.Request, res: Express.Response) => {
-    console.log('getting running games: ', Array.from(running_games.values()));
+    // console.log('getting running games: ', Array.from(running_games.values()));
     res.send(Array.from(running_games.values()));
   }
 );
 
 io.on('connection', (socket) => {
   console.log('a user connected!');
+  let user: { gameID: string; player: gameLogic.Player | null } = {
+    gameID: '',
+    player: null,
+  };
 
   socket.on('disconnect', () => {
     console.log('user disconnected');
+    const currentGame = running_games.get(user.gameID);
+    if (currentGame) {
+      const newPlayers = currentGame.players.filter(
+        (value: gameLogic.Player) => {
+          return user.player && value.id !== user.player.id;
+        }
+      );
+      if (newPlayers.length === 0) {
+        running_games.delete(user.gameID);
+      } else {
+        console.log('player id: ', user.player!.id);
+        currentGame.availableSeats[user.player!.id - 1] = true;
+        console.log('new available seats: ', currentGame.availableSeats);
+        console.log('new players: ', newPlayers);
+        running_games.set(user.gameID, {
+          gameID: currentGame.gameID,
+          gameType: currentGame.gameType,
+          host: currentGame.host,
+          players: newPlayers,
+          rows: currentGame.rows,
+          targetPlayers: currentGame.targetPlayers,
+          numTargetPlayers: currentGame.numTargetPlayers,
+          turn: currentGame.turn,
+          availableSeats: currentGame.availableSeats,
+        });
+      }
+    }
   });
 
   socket.on('join', (gameID: string) => {
     // console.log('joining game: ', gameID);
     const game = running_games.get(gameID);
     if (game) {
-      const player = gameSettings.AllPlayers[game.players.length];
-      const secret = crypto.randomBytes(32).toString('hex'); // player secret, so other people can't move on this player's behalf
+      for (let i = 0; i < game.numTargetPlayers; i++) {
+        if (game.availableSeats[i]) {
+          game.availableSeats[i] = false;
+          const player = gameSettings.AllPlayers[i];
+          const secret = crypto.randomBytes(32).toString('hex'); // player secret, so other people can't move on this player's behalf
 
-      game.players.push(player);
+          game.players.push(player);
+          user.gameID = game.gameID;
+          user.player = player;
 
-      const response = {
-        player: player,
-        secret: secret,
-        game: game,
-      };
-      // console.log('found game, sending response', response);
-      socket.emit('join', response);
+          const response = {
+            player: player,
+            secret: secret,
+            game: game,
+          };
+          // console.log('found game, sending response', response);
+          socket.emit('join', response);
+          break;
+        }
+      }
     } else {
       // console.log("couldn't find game: ", gameID);
       socket.emit(null);
@@ -118,7 +161,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('move', (res: { gameID: string; move: gameLogic.MoveObject }) => {
-    console.log('user tried to play move', res.move);
+    // console.log('user tried to play move', res.move);
     // TODO verify moves on server
     // if (gameLogic.validMove()) {
     // }
@@ -138,6 +181,12 @@ io.on('connection', (socket) => {
           players: currentGame.players,
           rows: newBoard,
           targetPlayers: currentGame.targetPlayers,
+          numTargetPlayers: currentGame.numTargetPlayers,
+          turn: gameLogic.changeTurn(
+            currentGame.targetPlayers,
+            currentGame.turn
+          ),
+          availableSeats: currentGame.availableSeats,
         });
         socket.broadcast.emit('move', {
           gameID: res.gameID,
