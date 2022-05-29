@@ -510,6 +510,7 @@ const rowDiagonals: [number, number][][] = [
 ];
 
 export const changeTurn = (players: Player[], turn: number): number => {
+  console.log('running change turn');
   const newTurn = turn >= players!.at(-1)!.id ? 1 : turn + 1;
   return newTurn;
 };
@@ -695,7 +696,7 @@ export const getWinner = (
   for (let player of players) {
     let playerWon = true;
     const goal = winningPositions.get(player.id);
-    console.log(goal);
+    // console.log(goal);
     for (let square of goal!) {
       if (rows[square[1]][square[0]] !== player.id) {
         playerWon = false;

@@ -15,6 +15,7 @@ import { Socket } from 'socket.io';
 import * as gameSettings from './gameSettings';
 import * as gameLogic from './gameLogic';
 console.log('This is running as development: ', isDevelopment);
+let moveCounter = 0;
 
 // keep a list of the running games on this server
 const running_games: Map<string, gameLogic.GameObject> = new Map();
@@ -160,41 +161,49 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('move', (res: { gameID: string; move: gameLogic.MoveObject }) => {
-    // console.log('user tried to play move', res.move);
-    // TODO verify moves on server
-    // if (gameLogic.validMove()) {
-    // }
-    if (running_games.has(res.gameID)) {
-      const currentGame = running_games.get(res.gameID);
-      if (currentGame) {
-        const newBoard = gameLogic.updateRows(
-          currentGame.rows,
-          res.move.source,
-          res.move.dest,
-          res.move.player
-        );
-        running_games.set(res.gameID, {
-          gameID: currentGame.gameID,
-          gameType: currentGame.gameType,
-          host: currentGame.host,
-          players: currentGame.players,
-          rows: newBoard,
-          targetPlayers: currentGame.targetPlayers,
-          numTargetPlayers: currentGame.numTargetPlayers,
-          turn: gameLogic.changeTurn(
-            currentGame.targetPlayers,
-            currentGame.turn
-          ),
-          availableSeats: currentGame.availableSeats,
-        });
-        socket.broadcast.emit('move', {
-          gameID: res.gameID,
-          move: res.move,
-        });
+  socket.on(
+    'move',
+    (res: { gameID: string; move: gameLogic.MoveObject; turn: number }) => {
+      // console.log('user tried to play move', res.move);
+      // TODO verify moves on server
+      // if (gameLogic.validMove()) {
+      // }
+      console.log('doing move!', moveCounter);
+      moveCounter++;
+      if (
+        running_games.has(res.gameID) &&
+        running_games.get(res.gameID)?.turn === res.turn
+      ) {
+        const currentGame = running_games.get(res.gameID);
+        if (currentGame) {
+          const newBoard = gameLogic.updateRows(
+            currentGame.rows,
+            res.move.source,
+            res.move.dest,
+            res.move.player
+          );
+          running_games.set(res.gameID, {
+            gameID: currentGame.gameID,
+            gameType: currentGame.gameType,
+            host: currentGame.host,
+            players: currentGame.players,
+            rows: newBoard,
+            targetPlayers: currentGame.targetPlayers,
+            numTargetPlayers: currentGame.numTargetPlayers,
+            turn: gameLogic.changeTurn(
+              currentGame.targetPlayers,
+              currentGame.turn
+            ),
+            availableSeats: currentGame.availableSeats,
+          });
+          socket.broadcast.emit('move', {
+            gameID: res.gameID,
+            move: res.move,
+          });
+        }
       }
     }
-  });
+  );
 });
 
 server.listen(port, host, () => {
