@@ -89,6 +89,9 @@ app.get(
   '/list-games/chinese-checkers',
   (req: Express.Request, res: Express.Response) => {
     // console.log('getting running games: ', Array.from(running_games.values()));
+    console.log(
+      `number of games: ${Array.from(running_games.values()).length}`
+    );
     res.send(Array.from(running_games.values()));
   }
 );
@@ -155,14 +158,15 @@ io.on('connection', (socket) => {
           };
           // console.log('found game, sending response', response);
           socket.emit('join', response);
+          socket.join(gameID);
+          io.to(gameID).emit('newPlayer', game);
           break;
         }
       }
     } else {
-      // console.log("couldn't find game: ", gameID);
+      console.log("couldn't find game: ", gameID);
       socket.emit(null);
     }
-    socket.broadcast.emit('newPlayer', game);
   });
 
   socket.on(
@@ -200,7 +204,7 @@ io.on('connection', (socket) => {
             ),
             availableSeats: currentGame.availableSeats,
           });
-          socket.broadcast.emit('move', {
+          io.to(res.gameID).emit('move', {
             gameID: res.gameID,
             move: res.move,
           });
