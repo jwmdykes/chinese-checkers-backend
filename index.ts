@@ -102,6 +102,7 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('user disconnected');
+    socket.removeAllListeners();
     const currentGame = running_games.get(user.gameID);
     if (currentGame) {
       const newPlayers = currentGame.players.filter(
