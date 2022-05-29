@@ -102,7 +102,6 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('user disconnected');
-    socket.removeAllListeners();
     const currentGame = running_games.get(user.gameID);
     if (currentGame) {
       const newPlayers = currentGame.players.filter(
@@ -113,6 +112,7 @@ io.on('connection', (socket) => {
       if (newPlayers.length === 0) {
         running_games.delete(user.gameID);
       } else {
+        console.log('removing player from game');
         console.log('player id: ', user.player!.id);
         currentGame.availableSeats[user.player!.id - 1] = true;
         console.log('new available seats: ', currentGame.availableSeats);
@@ -130,6 +130,8 @@ io.on('connection', (socket) => {
         });
       }
     }
+    socket.broadcast.emit('playerLeft', running_games.get(user.gameID));
+    socket.removeAllListeners();
   });
 
   socket.on('join', (gameID: string) => {
@@ -160,6 +162,7 @@ io.on('connection', (socket) => {
       // console.log("couldn't find game: ", gameID);
       socket.emit(null);
     }
+    socket.broadcast.emit('newPlayer', game);
   });
 
   socket.on(
