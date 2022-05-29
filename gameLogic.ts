@@ -511,7 +511,7 @@ const rowDiagonals: [number, number][][] = [
 
 export const changeTurn = (players: Player[], turn: number): number => {
   console.log('running change turn');
-  const newTurn = turn >= players!.at(-1)!.id ? 1 : turn + 1;
+  const newTurn = turn >= players[players.length - 1]!.id ? 1 : turn + 1;
   return newTurn;
 };
 
