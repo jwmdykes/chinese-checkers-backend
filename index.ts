@@ -14,7 +14,7 @@ const {
 import { Socket } from 'socket.io';
 import * as gameSettings from './gameSettings';
 import * as gameLogic from './gameLogic';
-console.log('This is running as development: ', isDevelopment);
+console.log('This is running as development:', isDevelopment);
 let moveCounter = 0;
 
 // keep a list of the running games on this server
@@ -27,12 +27,7 @@ const allowedCors = {
   methods: ['GET', 'POST'],
 };
 
-console.log(
-  'allowing cors from : ' +
-    `http${isDevelopment ? '' : 's'}://${allowedHost}${
-      isDevelopment ? ':' + allowedPort : ''
-    }`
-);
+console.log(`allowing cors from: ${allowedCors.origin}`);
 
 const app = express();
 app.use(cors(allowedCors));
