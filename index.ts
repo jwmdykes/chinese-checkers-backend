@@ -21,9 +21,7 @@ let moveCounter = 0;
 const running_games: Map<string, gameLogic.GameObject> = new Map();
 
 const allowedCors = {
-  origin: `http${isDevelopment ? '' : 's'}://${allowedHost}${
-    isDevelopment ? ':' + allowedPort : ''
-  }`,
+  origin: '*',
   methods: ['GET', 'POST'],
 };
 
