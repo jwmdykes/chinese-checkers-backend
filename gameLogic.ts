@@ -19,7 +19,6 @@ export interface Square {
 export interface GameObject {
   gameID: string;
   gameType: string;
-  host: string;
   players: Player[];
   availableSeats: boolean[];
   targetPlayers: Player[];

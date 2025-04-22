@@ -2,15 +2,7 @@ const express = require('express');
 import * as Express from 'express';
 const cors = require('cors');
 const crypto = require('crypto');
-const {
-  port,
-  host,
-  allowedPort,
-  allowedHost,
-  isDevelopment,
-  key_file,
-  cert_file,
-} = require('./config');
+const { port, isDevelopment } = require('./config');
 import { Socket } from 'socket.io';
 import * as gameSettings from './gameSettings';
 import * as gameLogic from './gameLogic';
@@ -30,19 +22,8 @@ console.log(`allowing cors from: ${allowedCors.origin}`);
 const app = express();
 app.use(cors(allowedCors));
 
-let server: any;
-// use https if there are cert and key files in the environment variables
-if (key_file && cert_file) {
-  const fs = require('fs');
-  const https = require('https');
-  const privateKey = fs.readFileSync(key_file);
-  const certificate = fs.readFileSync(cert_file);
-  const credentials = { key: privateKey, cert: certificate };
-  server = https.createServer(credentials, app);
-} else {
-  const http = require('http');
-  server = http.createServer(app);
-}
+const http = require('http');
+const server = http.createServer(app);
 
 const { Server } = require('socket.io');
 
@@ -65,7 +46,6 @@ app.get(
     const newGame: gameLogic.GameObject = {
       gameID: gameID,
       gameType: 'chinese-checkers',
-      host: `${host}:${port}`,
       players: [],
       numTargetPlayers: numTargetPlayers,
       targetPlayers: targetPlayers,
@@ -116,7 +96,6 @@ io.on('connection', (socket) => {
         running_games.set(user.gameID, {
           gameID: currentGame.gameID,
           gameType: currentGame.gameType,
-          host: currentGame.host,
           players: newPlayers,
           rows: currentGame.rows,
           targetPlayers: currentGame.targetPlayers,
@@ -186,7 +165,6 @@ io.on('connection', (socket) => {
           running_games.set(res.gameID, {
             gameID: currentGame.gameID,
             gameType: currentGame.gameType,
-            host: currentGame.host,
             players: currentGame.players,
             rows: newBoard,
             targetPlayers: currentGame.targetPlayers,
@@ -207,10 +185,8 @@ io.on('connection', (socket) => {
   );
 });
 
-server.listen(port, host, () => {
-  console.log(
-    `listening at: http${key_file && cert_file ? 's' : ''}://${host}:${port}`
-  );
+server.listen(port, '0.0.0.0', () => {
+  console.log(`listening at: http://0.0.0.0:${port}`);
 });
 
 export {};
